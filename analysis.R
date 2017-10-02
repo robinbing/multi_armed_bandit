@@ -33,6 +33,7 @@ crop.winter = list( price = price,
                     output.mean = output.mean / 1.2,
                     output.sd = output.mean )
 
+
 # 2. Run tests ------------------------------------------------------------
 
 # a. compare different parameters
@@ -44,10 +45,23 @@ test.pct$box.chart
 test.temperature$box.chart
 
 # b. multi-armed vs. random
-multi_armed = mainProcess(crop.spring, crop.summer, crop.fall, crop.winter, temperature = 50, pct = 0.5)
-sum(multi_armed$season.cum.reward[20, ])
+test.muli_arm = sapply(1:15, 
+                       function(x) {
+                         multi_armed = mainProcess(crop.spring, crop.summer, crop.fall, crop.winter, temperature = 50, pct = 0.5)
+                         sum(multi_armed$season.cum.reward[20, ])
+                       })
 
-sum(sapply(1:20, 
-           function(x){
-             randomPick(crop.spring, crop.summer, crop.fall, crop.winter)
-           }))
+test.random = sapply(1:15,
+                     function(x) {
+                       sum(sapply(1:20, 
+                                  function(x){
+                                    randomPick(crop.spring, crop.summer, crop.fall, crop.winter)
+                                  }))
+                     })
+comp = data.frame(method = as.factor(c(rep('multi_arm', 15), rep('random', 15))),
+                  value = c(test.muli_arm, test.random))
+comp = melt(comp, id.vars = 'method')
+ggplot(data = comp, aes(x = method, y = value)) +
+  geom_boxplot(aes(fill = method)) +
+  xlab('methods') +
+  ylab('reward')
